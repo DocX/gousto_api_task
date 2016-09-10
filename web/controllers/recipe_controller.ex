@@ -2,6 +2,7 @@ defmodule GoustoApiTask.RecipeController do
   use GoustoApiTask.Web, :controller
 
   alias GoustoApiTask.Recipe
+  alias GoustoApiTask.Repo
 
   def index(conn, _params) do
     recipes = Repo.all(Recipe)
@@ -26,7 +27,12 @@ defmodule GoustoApiTask.RecipeController do
 
   def show(conn, %{"id" => id}) do
     recipe = Repo.get!(Recipe, id)
-    render(conn, "show.json", recipe: recipe)
+    if is_nil(recipe) do
+      conn
+      |> send_resp(404, "")
+    else
+      render(conn, "show.json", recipe: recipe)
+    end
   end
 
   def update(conn, %{"id" => id, "recipe" => recipe_params}) do
@@ -41,15 +47,5 @@ defmodule GoustoApiTask.RecipeController do
         |> put_status(:unprocessable_entity)
         |> render(GoustoApiTask.ChangesetView, "error.json", changeset: changeset)
     end
-  end
-
-  def delete(conn, %{"id" => id}) do
-    recipe = Repo.get!(Recipe, id)
-
-    # Here we use delete! (with a bang) because we expect
-    # it to always work (and if it does not, it will raise).
-    Repo.delete!(recipe)
-
-    send_resp(conn, :no_content, "")
   end
 end

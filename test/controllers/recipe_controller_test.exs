@@ -2,23 +2,27 @@ defmodule GoustoApiTask.RecipeControllerTest do
   use GoustoApiTask.ConnCase
 
   alias GoustoApiTask.Recipe
+  alias GoustoApiTask.Repo
+
   @valid_attrs %{recipe_cuisine: "some content", slug: "some-content", title: "some content"}
   @invalid_attrs %{}
 
   # Setup JSON-API MIME headers
   setup %{conn: conn} do
-    {
-      :ok,
-      conn:
-        conn
-        |> put_req_header("accept", "application/vnd.api+json")
-        |> put_req_header("content-type", "application/vnd.api+json")
-    }
+    conn =
+      conn
+      |> put_req_header("accept", "application/vnd.api+json")
+      |> put_req_header("content-type", "application/vnd.api+json")
+
+    # wipe Repo
+    Repo.clear(Recipe)
+
+    { :ok, conn: conn }
   end
 
   # Fetch a recipe by id
 
-  test "Fetch a recipe by id - existing", %{conn: conn} do
+  test "GET /api/recipes/:id respond with 200 when id exists", %{conn: conn} do
     recipe = Repo.insert! %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
@@ -34,20 +38,20 @@ defmodule GoustoApiTask.RecipeControllerTest do
     assert response_attributes = %{ "title" => recipe.title }
   end
 
-  test "Fetch a recipe by id - not found", %{conn: conn} do
-    assert_error_sent 404, fn ->
-      get conn, "/api/recipes/-1"
-    end
+  test "GET /api/recipes/:id respond with 404 when id doesn't exists", %{conn: conn} do
+    conn = get conn, "/api/recipes/-1"
+
+    assert conn.status == 404
   end
 
   # Fetch all recipes for a specific cuisine
 
-  test "Fetch all recipes for a specific cuisine - get empty", %{conn: conn} do
+  test "GET /api/recipes respond empty list when no records exists", %{conn: conn} do
     conn = get conn, "/api/recipes?filter[cuisine]=asian"
     assert json_response(conn, 200)["data"] == []
   end
 
-  test "Fetch all recipes for a specific cuisine - get", %{conn: conn} do
+  test " GET /api/recipes using filter[cuisine] respond 200 with list of records of that cuisine", %{conn: conn} do
     recipe = Repo.insert! %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
@@ -66,7 +70,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
     assert (response["data"] |> Enum.at(0))["attributes"]["title"] == recipe.title
   end
 
-  test "Fetch all recipes for a specific cuisine - pagination", %{conn: conn} do
+  test "GET /api/recipes respond with paginated list", %{conn: conn} do
     # create 150 Pork Chilli recipes
     Enum.each 1..150, fn(n) ->
       Repo.insert! %Recipe{
