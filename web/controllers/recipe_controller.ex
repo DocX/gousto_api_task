@@ -4,19 +4,35 @@ defmodule GoustoApiTask.RecipeController do
   alias GoustoApiTask.Recipe
   alias GoustoApiTask.Repo
 
-  def index(conn, _params) do
-    recipes = Repo.all(Recipe)
-    render(conn, "index.json", recipes: recipes)
+  def index(conn, params) do
+    all_recipes = Repo.all(Recipe)
+
+    # get records with filters
+    all_recipes = case params["filter"] do
+      x when not is_nil(x) and is_map(x) -> Repo.all_where(Recipe, params["filter"])
+      _ -> Repo.all(Recipe)
+    end
+
+    # parse pagination parameters
+    page_offset = case Integer.parse(params["page"]["offset"] || "") do
+      {x, _} -> x
+      :error -> 0
+    end
+    page_limit = case Integer.parse(params["page"]["offset"] || "") do
+      {x, _} -> x
+      :error -> 50
+    end
+
+    render(conn, "index.json", recipes: all_recipes, offset: page_offset, limit: page_limit)
   end
 
-  def create(conn, %{"recipe" => recipe_params}) do
-    changeset = Recipe.changeset(%Recipe{}, recipe_params)
+  def create(conn, %{"data" => %{ "attributes" => attrs, "type" => "recipes"}}) do
+    changeset = Recipe.merge(%Recipe{}, attrs)
 
-    case Repo.insert(changeset) do
+    case Repo.insert!(changeset) do
       {:ok, recipe} ->
         conn
         |> put_status(:created)
-        |> put_resp_header("location", recipe_path(conn, :show, recipe))
         |> render("show.json", recipe: recipe)
       {:error, changeset} ->
         conn
@@ -35,9 +51,9 @@ defmodule GoustoApiTask.RecipeController do
     end
   end
 
-  def update(conn, %{"id" => id, "recipe" => recipe_params}) do
+  def update(conn, %{"id" => id, "data" => %{ "id" => id, "attributes" => attrs, "type" => "recipes"}}) do
     recipe = Repo.get!(Recipe, id)
-    changeset = Recipe.changeset(recipe, recipe_params)
+    changeset = Recipe.merge(recipe, attrs)
 
     case Repo.update(changeset) do
       {:ok, recipe} ->
