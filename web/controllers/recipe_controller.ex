@@ -68,17 +68,24 @@ defmodule GoustoApiTask.RecipeController do
     end
   end
 
-  def update(conn, %{"id" => id, "data" => %{ "id" => id, "attributes" => attrs, "type" => "recipes"}}) do
+  def update(conn, %{"id" => id, "data" => %{ "attributes" => attrs, "type" => "recipes"}}) do
     recipe = Repo.get!(Recipe, id)
-    changeset = Recipe.merge(recipe, attrs)
+    result = case Recipe.merge(recipe, attrs) do
+      {:ok, recipe} -> Repo.update!(recipe)
+      {:error, errors} -> {:bad_request, errors}
+    end
 
-    case Repo.update(changeset) do
+    case result do
       {:ok, recipe} ->
-        render(conn, "show.json-api", recipe: recipe)
+        render(conn, :show, data: recipe)
+      {:bad_request, errors} ->
+        conn
+        |> put_status(:bad_request)
+        |> render(GoustoApiTask.ErrorView, "errors.json-api", errors: errors)
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> render(GoustoApiTask.ChangesetView, "error.json", changeset: changeset)
+        |> render(GoustoApiTask.ErrorView, "errors.json-api", errors: changeset)
     end
   end
 

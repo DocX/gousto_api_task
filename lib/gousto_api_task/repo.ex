@@ -48,11 +48,29 @@ defmodule GoustoApiTask.Repo do
     end
   end
 
+  # update
+  def handle_call({:update!, record}, _from, repo) do
+    original = Enum.find(repo.records, fn(r) -> r.id == record.id end)
+
+    case record.__struct__.validate_update(repo.records, original, record) do
+      {:ok, new_record} -> {:reply, {:ok, new_record}, store_update(repo, new_record)}
+      error -> {:reply, error, repo}
+    end
+  end
+
+
   # create new repo with new record
   defp store_record(repo, record) do
     %{
       last_id: record.id,
       records: repo.records |> Enum.concat([record])
+    }
+  end
+  # create new repo with updated record
+  defp store_update(repo, record) do
+    %{
+      repo |
+      records: repo.records |> Enum.filter(fn(r) -> r.id != record.id end) |> Enum.concat([record])
     }
   end
 
@@ -61,6 +79,11 @@ defmodule GoustoApiTask.Repo do
   # Insert record to repository based on record type
   def insert!(record) do
     GenServer.call(get_type_repo(record.__struct__), {:insert!, record})
+  end
+
+  # Insert record to repository based on record type
+  def update!(record) do
+    GenServer.call(get_type_repo(record.__struct__), {:update!, record})
   end
 
   # Get record by ID

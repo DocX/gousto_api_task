@@ -168,43 +168,42 @@ defmodule GoustoApiTask.RecipeControllerTest do
   end
 
 
-  #
-  # test "POST - it respond with 400 and doesn't store new recipe with invalid attrs", %{conn: conn} do
-  #   conn = post conn, "/api/recipes", %{
-  #     data: %{
-  #       type: "recipes",
-  #       attributes: @invalid_attrs
-  #     }
-  #   }
-  #   assert json_response(conn, 400)["errors"] != %{}
-  # end
-  #
-  #
-  # # Update an exising recipe
-  #
-  # test "PATCH - updates and renders chosen resource when data is valid", %{conn: conn} do
-  #   {:ok, recipe} = Repo.insert! %Recipe{}
-  #   conn = put conn, "/api/recipes/#{recipe.id}", %{
-  #     data: %{
-  #       type: "recipes",
-  #       id: recipe.id,
-  #       attributes: @valid_attrs
-  #     }
-  #   }
-  #   assert json_response(conn, 200)["data"]["id"]
-  #   assert Repo.get!(Recipe, json_response(conn, 200)["data"]["id"])
-  # end
-  #
-  # test "PATCH - does not update chosen resource and renders errors when data is invalid", %{conn: conn} do
-  #   {:ok, recipe} = Repo.insert! %Recipe{}
-  #   conn = put conn, recipe_path(conn, :update, recipe), %{
-  #     data: %{
-  #       type: "recipes",
-  #       id: recipe.id,
-  #       attributes: @invalid_attrs
-  #     }
-  #   }
-  #   assert json_response(conn, 400)["errors"] != %{}
-  # end
+  # Update an exising recipe
+
+  test "PUT - updates and renders chosen resource when data is valid", %{conn: conn} do
+    {:ok, recipe} = Repo.insert! %Recipe{
+      title: "Recipe",
+      recipe_cuisine: "asian"
+    }
+    conn = put conn, "/api/recipes/#{recipe.id}", %{
+      data: %{
+        type: "recipes",
+        id: recipe.id,
+        attributes: %{
+          title: "New Title 2"
+        }
+      }
+    }
+    assert json_response(conn, 200)["data"]["id"]
+    assert Repo.get!(Recipe, json_response(conn, 200)["data"]["id"])
+    assert Repo.get!(Recipe, json_response(conn, 200)["data"]["id"]).title == "New Title 2"
+  end
+
+  test "PUT - does not update chosen resource and renders errors when data is invalid", %{conn: conn} do
+    {:ok, recipe} = Repo.insert! %Recipe{
+      title: "Recipe",
+      recipe_cuisine: "asian"
+    }
+    conn = put conn, recipe_path(conn, :update, recipe), %{
+      data: %{
+        type: "recipes",
+        id: recipe.id,
+        attributes: %{
+          title: ""
+        }
+      }
+    }
+    assert json_response(conn, 422)["errors"] != %{}
+  end
 
 end
