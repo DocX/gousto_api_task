@@ -34,17 +34,27 @@ defmodule GoustoApiTask.RecipeController do
   end
 
   def create(conn, %{"data" => %{"type" => "recipes", "attributes" => attrs}}) do
-    {:ok, changeset} = Recipe.merge(%Recipe{}, attrs)
+    # try to merge user params to new record model
+    # if merged, insert to repo and get result
+    result = case Recipe.merge(%Recipe{}, attrs) do
+      {:ok, recipe} -> Repo.insert!(recipe)
+      {:error, errors} -> {:bad_request, errors}
+    end
 
-    case Repo.insert!(changeset) do
+    # render result
+    case result do
       {:ok, recipe} ->
         conn
         |> put_status(:created)
         |> render(:show, data: recipe)
-      {:error, error_key, error_message} ->
+      {:bad_request, errors} ->
+        conn
+        |> put_status(:bad_request)
+        |> render(GoustoApiTask.ErrorView, "errors.json-api", errors: errors)
+      {:error, errors} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> render(GoustoApiTask.ErrorView, "422.json-api", key: error_key, message: error_message)
+        |> render(GoustoApiTask.ErrorView, "errors.json-api", errors: errors)
     end
   end
 

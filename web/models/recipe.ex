@@ -32,40 +32,64 @@ defmodule GoustoApiTask.Recipe do
 
   # called by Repo before original is added to repository
   def validate_new(repository, new) do
-    common = common_validation(repository, new)
+    # set initial values
+    new = %{
+      new |
+      created_at: DateTime.utc_now |> DateTime.to_iso8601,
+      updated_at: DateTime.utc_now |> DateTime.to_iso8601,
+      slug: case new.slug do nil -> slug(new.title); x -> x end
+    }
 
-    cond do
-      elem(common, 1) == :error -> common
-      Enum.any?(repository, fn(r) -> r.slug == new.slug end) -> {:error, :slug, "Already taken"}
-      true -> {:ok, new}
-    end
+    # validate new record
+    [
+      {Enum.any?(repository, fn(r) -> r.slug == new.slug end), {:slug, "Already taken"}}
+      | common_validations(repository, new)
+    ]
+    |> validate(new)
   end
 
   # called by Repo before original is replaced by new in repository
   def validate_update(repository, original, new) do
-    common = common_validation(repository, new)
-    cond do
-      elem(common, 1) == :error -> common
-      original.slug != new.slug -> {:error, :slug, "Cannot be updated"}
-      original.created_at != new.created_at -> {:error, :created_at, "Cannot be updated"}
-      true -> {:ok, new}
+    [
+      {original.slug != new.slug, {:slug, "Cannot be updated"}},
+      {original.created_at != new.created_at, {:created_at, "Cannot be updated"}} |
+      common_validations(repository, new)
+    ]
+    |> validate(new)
+  end
+
+  defp common_validations(repository, record) do
+    [
+      {String.strip(record.title) == "", {:title, "Cannot be blank"}},
+      {String.strip(record.recipe_cuisine) == "", {:recipe_cuisine, "Cannot be blank"}},
+      {String.strip(record.slug) == "", {:slug, "Cannot be blank"}}
+    ]
+  end
+
+  # collapse validations to validate result
+  defp validate(validations, record) do
+    errors = validations
+      |> Enum.filter(fn({v, _}) -> v end)
+      |> Enum.map(fn({_, e}) -> e end)
+
+    case errors do
+      [] -> {:ok, record}
+      x -> {:error, x}
     end
   end
 
-  defp common_validation(repository, record) do
-    cond do
-      String.strip(record.title) == "" -> {:error, :title, "Cannot be blank"}
-      String.strip(record.recipe_cuisine) == "" -> {:error, :recipe_cuisine, "Cannot be blank"}
-      String.strip(record.slug) == "" -> {:error, :slug, "Cannot be blank"}
-      true -> {:ok, record}
-    end
+  # Generate new slug for given recipe
+  def slug(recipe) do
+    recipe.title
+    |> String.downcase
+    |> String.replace(~r/[^a-z0-9]+/, "-")
   end
 
   # merge original Recipe struct with attrs that may contain String based keys
   def merge(original, attrs) do
-    case valid_attrs?(attrs) do
-      true -> {:ok, merge_do(original, attrs)}
-      false -> {:error, :invalid_attributes}
+    case invalid_attributes(attrs) do
+      [] -> {:ok, merge_do(original, attrs)}
+      invalid -> {:error, Enum.map(invalid, fn(k) -> {k, "Unrecognized attribute"} end)}
     end
   end
 
@@ -79,9 +103,9 @@ defmodule GoustoApiTask.Recipe do
     end)
   end
 
-  def valid_attrs?(attrs) do
+  def invalid_attributes(attrs) do
     Map.keys(attrs)
-    |> Enum.all?(fn(k) -> Enum.member?(string_keys, k) end)
+    |> Enum.filter(fn(k) -> !Enum.member?(string_keys, k) end)
   end
 
   defp string_keys do

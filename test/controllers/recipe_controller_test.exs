@@ -142,6 +142,32 @@ defmodule GoustoApiTask.RecipeControllerTest do
     assert Enum.at(json_response(conn, 422)["errors"], 0)["source"] == "/data/attributes/slug"
   end
 
+  test "POST - it creates with timestamps", %{conn: conn} do
+    conn = post conn, "/api/recipes", %{
+      data: %{
+        type: "recipes",
+        attributes: @valid_attrs
+      }
+    }
+    assert json_response(conn, 201)["data"]["id"] != nil
+    assert json_response(conn, 201)["data"]["attributes"]["created_at"] != nil
+    assert json_response(conn, 201)["data"]["attributes"]["updated_at"] != nil
+  end
+
+  test "POST - it respond 422 with invalid attributes", %{conn: conn} do
+    conn = post conn, "/api/recipes", %{
+      data: %{
+        type: "recipes",
+        attributes: %{
+          recipe_title: "Title"
+        }
+      }
+    }
+    assert json_response(conn, 400)
+    assert Enum.at(json_response(conn, 400)["errors"], 0)["source"] == "/data/attributes/recipe_title"
+  end
+
+
   #
   # test "POST - it respond with 400 and doesn't store new recipe with invalid attrs", %{conn: conn} do
   #   conn = post conn, "/api/recipes", %{

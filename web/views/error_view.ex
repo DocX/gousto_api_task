@@ -15,14 +15,16 @@ defmodule GoustoApiTask.ErrorView do
     render "500.json", assigns
   end
 
-  def render("422.json-api", error) do
+  def render("errors.json-api", %{errors: errors}) do
+    errors_json_api = Enum.map(errors, fn({key, title}) ->
+      %{
+        source: "/data/attributes/#{key}",
+        title: title
+      }
+    end)
+
     %{
-      errors: [
-        %{
-          source: "/data/attributes/#{error[:key]}",
-          title: error[:error]
-        }
-      ]
+      errors: errors_json_api
     }
   end
 end

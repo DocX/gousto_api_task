@@ -43,7 +43,7 @@ defmodule GoustoApiTask.Repo do
     record = %{ record | id: repo.last_id + 1 }
 
     case record.__struct__.validate_new(repo.records, record) do
-      {:ok, new_record} -> {:reply, {:ok, record}, store_record(repo, record)}
+      {:ok, new_record} -> {:reply, {:ok, new_record}, store_record(repo, new_record)}
       error -> {:reply, error, repo}
     end
   end
