@@ -41,12 +41,19 @@ defmodule GoustoApiTask.Repo do
   # insert new record to repo
   def handle_call({:insert!, record}, _from, repo) do
     record = %{ record | id: repo.last_id + 1 }
-    next_repo = %{
-      last_id: repo.last_id + 1,
+
+    case record.__struct__.validate_new(repo.records, record) do
+      {:ok, new_record} -> {:reply, {:ok, record}, store_record(repo, record)}
+      error -> {:reply, error, repo}
+    end
+  end
+
+  # create new repo with new record
+  defp store_record(repo, record) do
+    %{
+      last_id: record.id,
       records: repo.records |> Enum.concat([record])
     }
-
-    { :reply, {:ok, record}, next_repo }
   end
 
   # Mimic Ecto interface

@@ -40,7 +40,6 @@ defmodule GoustoApiTask.RecipeControllerTest do
 
   test "GET /api/recipes/:id respond with 404 when id doesn't exists", %{conn: conn} do
     conn = get conn, "/api/recipes/-1"
-
     assert conn.status == 404
   end
 
@@ -125,6 +124,24 @@ defmodule GoustoApiTask.RecipeControllerTest do
     assert json_response(conn, 201)["data"]["id"]
     assert Repo.get!(Recipe, json_response(conn, 201)["data"]["id"]) != nil
   end
+
+  test "POST - it respond 422 if slug already exists", %{conn: conn} do
+    Repo.insert! %Recipe{
+      title: "Pork Chilli",
+      slug: @valid_attrs.slug,
+      recipe_cuisine: "asian"
+    }
+
+    conn = post conn, "/api/recipes", %{
+      data: %{
+        type: "recipes",
+        attributes: @valid_attrs
+      }
+    }
+    assert json_response(conn, 422)
+    assert Enum.at(json_response(conn, 422)["errors"], 0)["source"] == "/data/attributes/slug"
+  end
+
   #
   # test "POST - it respond with 400 and doesn't store new recipe with invalid attrs", %{conn: conn} do
   #   conn = post conn, "/api/recipes", %{

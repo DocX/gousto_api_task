@@ -12,9 +12,9 @@ defmodule GoustoApiTask.RecipeController do
     all_recipes = Repo.all(Recipe)
 
     # get records with filters
-    all_recipes = case params["filter"] do
-      x when not is_nil(x) and is_map(x) -> Repo.all_where(Recipe, params["filter"])
-      _ -> Repo.all(Recipe)
+    all_recipes = case !is_nil(params["filter"]) && is_map(params["filter"]) do
+      true -> Repo.all_where(Recipe, params["filter"])
+      false -> Repo.all(Recipe)
     end
 
     # parse pagination parameters
@@ -34,17 +34,17 @@ defmodule GoustoApiTask.RecipeController do
   end
 
   def create(conn, %{"data" => %{"type" => "recipes", "attributes" => attrs}}) do
-    changeset = Recipe.merge(%Recipe{}, attrs)
+    {:ok, changeset} = Recipe.merge(%Recipe{}, attrs)
 
     case Repo.insert!(changeset) do
       {:ok, recipe} ->
         conn
         |> put_status(:created)
         |> render(:show, data: recipe)
-      {:error, changeset} ->
+      {:error, error_key, error_message} ->
         conn
         |> put_status(:unprocessable_entity)
-        |> render(GoustoApiTask.ChangesetView, "error.json", changeset: changeset)
+        |> render(GoustoApiTask.ErrorView, "422.json-api", key: error_key, message: error_message)
     end
   end
 
@@ -64,11 +64,12 @@ defmodule GoustoApiTask.RecipeController do
 
     case Repo.update(changeset) do
       {:ok, recipe} ->
-        render(conn, "show.json", recipe: recipe)
+        render(conn, "show.json-api", recipe: recipe)
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
         |> render(GoustoApiTask.ChangesetView, "error.json", changeset: changeset)
     end
   end
+
 end

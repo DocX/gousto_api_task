@@ -14,4 +14,15 @@ defmodule GoustoApiTask.ErrorView do
   def template_not_found(_template, assigns) do
     render "500.json", assigns
   end
+
+  def render("422.json-api", error) do
+    %{
+      errors: [
+        %{
+          source: "/data/attributes/#{error[:key]}",
+          title: error[:error]
+        }
+      ]
+    }
+  end
 end
