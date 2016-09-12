@@ -7,6 +7,8 @@ defmodule GoustoApiTask.Router do
 
   scope "/api", GoustoApiTask do
     pipe_through :api
-    resources "/recipes", RecipeController, except: [:new, :edit, :delete]
+    resources "/recipes", RecipeController, except: [:new, :edit, :delete] do
+      resources "/ratings", RecipeRatingController, only: [:create, :index]
+    end
   end
 end

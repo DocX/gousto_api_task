@@ -119,6 +119,7 @@ defmodule GoustoApiTask.Repo do
   defp get_type_repo(type) do
     case type do
       GoustoApiTask.Recipe -> RecipesRepo
+      GoustoApiTask.RecipeRating -> RecipeRatingsRepo
     end
   end
 
