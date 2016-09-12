@@ -3,6 +3,10 @@ defmodule GoustoApiTask.RecipeController do
 
   alias GoustoApiTask.Recipe
   alias GoustoApiTask.Repo
+  alias GoustoApiTask.Pagination
+
+  import GoustoApiTask.Router.Helpers
+  alias GoustoApiTask.Endpoint
 
   def index(conn, params) do
     all_recipes = Repo.all(Recipe)
@@ -23,17 +27,20 @@ defmodule GoustoApiTask.RecipeController do
       :error -> 50
     end
 
-    render(conn, "index.json", recipes: all_recipes, offset: page_offset, limit: page_limit)
+    recipes = Pagination.paginate(all_recipes, page_offset, page_limit)
+    page_links = Pagination.page_links(all_recipes, page_offset, page_limit, &recipe_url(Endpoint, :index, &1))
+
+    render(conn, data: recipes, opts: [page: page_links])
   end
 
-  def create(conn, %{"data" => %{ "attributes" => attrs, "type" => "recipes"}}) do
+  def create(conn, %{"data" => %{"type" => "recipes", "attributes" => attrs}}) do
     changeset = Recipe.merge(%Recipe{}, attrs)
 
     case Repo.insert!(changeset) do
       {:ok, recipe} ->
         conn
         |> put_status(:created)
-        |> render("show.json", recipe: recipe)
+        |> render(:show, data: recipe)
       {:error, changeset} ->
         conn
         |> put_status(:unprocessable_entity)
@@ -47,7 +54,7 @@ defmodule GoustoApiTask.RecipeController do
       conn
       |> send_resp(404, "")
     else
-      render(conn, "show.json", recipe: recipe)
+      render(conn, data: recipe)
     end
   end
 

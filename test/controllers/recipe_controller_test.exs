@@ -31,7 +31,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
     conn = get conn, "/api/recipes/#{recipe.id}"
 
     response_data = json_response(conn, 200)["data"]
-    assert response_data["id"] == recipe.id
+    assert response_data["id"] == to_string(recipe.id)
     assert response_data["type"] == "recipes"
 
     response_attributes = response_data["attributes"]
@@ -61,7 +61,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
     conn = get conn, "/api/recipes"
     response = json_response(conn, 200)
     assert length(response["data"]) == 2
-    assert (response["data"] |> Enum.at(0))["id"] == recipe.id
+    assert (response["data"] |> Enum.at(0))["id"] == to_string(recipe.id)
     assert (response["data"] |> Enum.at(0))["attributes"]["title"] == recipe.title
   end
 
@@ -86,7 +86,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
     conn = get conn, "/api/recipes?filter[recipe_cuisine]=asian"
     response = json_response(conn, 200)
     assert length(response["data"]) == 1
-    assert (response["data"] |> Enum.at(0))["id"] == recipe.id
+    assert (response["data"] |> Enum.at(0))["id"] == to_string(recipe.id)
     assert (response["data"] |> Enum.at(0))["attributes"]["title"] == recipe.title
   end
 
