@@ -364,4 +364,5 @@ Run tests with
 ## Author
 
 Lukas Dolezal (lukas@dolezalu.cz)
-Linked In: https://www.linkedin.com/lukasdolezal
+
+LinkedIn: https://www.linkedin.com/in/lukasdolezal
