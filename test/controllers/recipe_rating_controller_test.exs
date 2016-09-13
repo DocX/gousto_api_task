@@ -25,7 +25,7 @@ defmodule GoustoApiTask.RecipeRatingControllerTest do
   # Allow to rate recipes
 
   test "POST /api/recipes/:id/ratings respond with 201 when correct", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       recipe_cuisine: "asian"
     }
@@ -51,7 +51,7 @@ defmodule GoustoApiTask.RecipeRatingControllerTest do
   end
 
   test "POST /api/recipes/:id/ratings with rating out of 1..5 range respond 422", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       recipe_cuisine: "asian"
     }
@@ -69,12 +69,12 @@ defmodule GoustoApiTask.RecipeRatingControllerTest do
   # Get ratings
 
   test "GET /api/recipes/:recipe_id/ratings using respond 200 with list of all records", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
       recipe_cuisine: "asian"
     }
-    {:ok, rating} = Repo.insert! %RecipeRating{
+    {:ok, rating} = Repo.insert %RecipeRating{
       recipe_id: recipe.id,
       rating: 5
     }

@@ -23,7 +23,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
   # Fetch a recipe by id
 
   test "GET /api/recipes/:id respond with 200 when id exists", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
       recipe_cuisine: "asian"
@@ -38,6 +38,23 @@ defmodule GoustoApiTask.RecipeControllerTest do
     assert response_attributes = %{ "title" => recipe.title }
   end
 
+  test "GET /api/recipes/:slug respond with 200 when id exists", %{conn: conn} do
+    {:ok, recipe} = Repo.insert %Recipe{
+      title: "Pork Chilli",
+      slug: "pork-chilli",
+      recipe_cuisine: "asian"
+    }
+    conn = get conn, "/api/recipes/#{recipe.slug}"
+
+    response_data = json_response(conn, 200)["data"]
+    assert response_data["id"] == to_string(recipe.id)
+    assert response_data["type"] == "recipes"
+
+    response_attributes = response_data["attributes"]
+    assert response_attributes = %{ "title" => recipe.title }
+  end
+
+
   test "GET /api/recipes/:id respond with 404 when id doesn't exists", %{conn: conn} do
     conn = get conn, "/api/recipes/-1"
     assert conn.status == 404
@@ -46,12 +63,12 @@ defmodule GoustoApiTask.RecipeControllerTest do
   # Fetch all recipes for a specific cuisine
 
   test "GET /api/recipes using respond 200 with list of all records", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
       recipe_cuisine: "asian"
     }
-    {:ok, recipe_other} = Repo.insert! %Recipe{
+    {:ok, recipe_other} = Repo.insert %Recipe{
       title: "Pork Chilli 2",
       slug: "pork-chilli-2",
       recipe_cuisine: "british"
@@ -71,12 +88,12 @@ defmodule GoustoApiTask.RecipeControllerTest do
   end
 
   test "GET /api/recipes using filter[recipe_cuisine] respond 200 with list of records of that cuisine", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Pork Chilli",
       slug: "pork-chilli",
       recipe_cuisine: "asian"
     }
-    {:ok, recipe_other} = Repo.insert! %Recipe{
+    {:ok, recipe_other} = Repo.insert %Recipe{
       title: "Pork Chilli 2",
       slug: "pork-chilli-2",
       recipe_cuisine: "british"
@@ -92,7 +109,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
   test "GET /api/recipes respond with paginated list", %{conn: conn} do
     # create 150 Pork Chilli recipes
     Enum.each 1..150, fn(n) ->
-      Repo.insert! %Recipe{
+      Repo.insert %Recipe{
        title: "Pork Chilli #{n}",
        slug: "pork-chilli-#{n}",
        recipe_cuisine: "asian"
@@ -126,7 +143,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
   end
 
   test "POST - it respond 422 if slug already exists", %{conn: conn} do
-    Repo.insert! %Recipe{
+    Repo.insert %Recipe{
       title: "Pork Chilli",
       slug: @valid_attrs.slug,
       recipe_cuisine: "asian"
@@ -171,7 +188,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
   # Update an exising recipe
 
   test "PUT - updates and renders chosen resource when data is valid", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Recipe",
       recipe_cuisine: "asian"
     }
@@ -190,7 +207,7 @@ defmodule GoustoApiTask.RecipeControllerTest do
   end
 
   test "PUT - does not update chosen resource and renders errors when data is invalid", %{conn: conn} do
-    {:ok, recipe} = Repo.insert! %Recipe{
+    {:ok, recipe} = Repo.insert %Recipe{
       title: "Recipe",
       recipe_cuisine: "asian"
     }

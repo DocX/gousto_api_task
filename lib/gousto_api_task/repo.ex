@@ -1,95 +1,13 @@
 defmodule GoustoApiTask.Repo do
-  use GenServer
-
-  require Logger
-
-  def start_link(state \\ [], opts \\ []) do
-    state = case state do
-      nil -> new_repo
-      x -> x
-    end
-    GenServer.start_link(__MODULE__, state, opts)
-  end
-
-  def handle_call({:all}, _from, repo) do
-    {:reply, repo.records, repo}
-  end
-
-  def handle_call({:where, filters}, _from, repo) do
-    # filter records to that matches given filters
-    matching_records = Enum.filter(repo.records, fn(record) ->
-      Enum.reduce(filters, true, fn({filter_key,filter_value}, acc) ->
-        # get record_key in atom that matches filter_key without
-        # converting user input to atom that can cause memory leak
-        record_key =
-          Map.keys(record)
-          |> Enum.find(fn(record_key) -> Atom.to_string(record_key) == filter_key end)
-
-        # if user filter key matches key in record, compare its values
-        case record_key do
-          nil -> acc
-          _ -> acc && Map.get(record, record_key) == filter_value
-        end
-      end)
-    end)
-
-    {:reply, matching_records, repo}
-  end
-
-  def handle_cast({:clear}, repo) do
-    {:noreply, new_repo}
-  end
-
-  # insert new record to repo
-  def handle_call({:insert!, record}, _from, repo) do
-    record = %{ record | id: repo.last_id + 1 }
-
-    case record.__struct__.validate_new(repo.records, record) do
-      {:ok, new_record} -> {:reply, {:ok, new_record}, store_record(repo, new_record)}
-      error -> {:reply, error, repo}
-    end
-  end
-
-  # update
-  def handle_call({:update!, record}, _from, repo) do
-    original = Enum.find(repo.records, fn(r) -> r.id == record.id end)
-
-    case record.__struct__.validate_update(repo.records, original, record) do
-      {:ok, new_record} -> {:reply, {:ok, new_record}, store_update(repo, new_record)}
-      error -> {:reply, error, repo}
-    end
-  end
-
-  # count
-  def handle_call({:count}, _from, repo) do
-    {:reply, length(repo.records), repo}
-  end
-
-
-  # create new repo with new record
-  defp store_record(repo, record) do
-    %{
-      last_id: record.id,
-      records: repo.records |> Enum.concat([record])
-    }
-  end
-  # create new repo with updated record
-  defp store_update(repo, record) do
-    %{
-      repo |
-      records: repo.records |> Enum.filter(fn(r) -> r.id != record.id end) |> Enum.concat([record])
-    }
-  end
-
   # Mimic Ecto interface
 
   # Insert record to repository based on record type
-  def insert!(record) do
+  def insert(record) do
     GenServer.call(get_type_repo(record.__struct__), {:insert!, record})
   end
 
   # Insert record to repository based on record type
-  def update!(record) do
+  def update(record) do
     GenServer.call(get_type_repo(record.__struct__), {:update!, record})
   end
 
@@ -101,7 +19,12 @@ defmodule GoustoApiTask.Repo do
       x when is_bitstring(x) -> Integer.parse(x)
     end
 
-    records = GenServer.call(get_type_repo(type), {:where, %{"id" => id_int}})
+    get_by!(type, "id", id_int)
+  end
+
+  # Get record by given field
+  def get_by!(type, field_name, value) do
+    records = GenServer.call(get_type_repo(type), {:where, %{field_name => value}})
     case records do
       [record | []] -> record
       _ -> nil
@@ -134,48 +57,4 @@ defmodule GoustoApiTask.Repo do
     end
   end
 
-  def load_from_csv(GoustoApiTask.Recipe, file) do
-    csv_stream =
-      File.stream!(file) |>
-      CSV.decode()
-
-    header = csv_stream |> Enum.take(1) |> Enum.at(0)
-
-    rows = Enum.count(csv_stream) - 1
-
-    loaded =
-      csv_stream |>
-      Enum.drop(1) |>
-      Enum.map(fn row ->
-        # transform row with header to map, and apply to new record struct
-        row_map = Enum.zip(header,row) |> Map.new()
-        row_map = %{
-          row_map |
-          "created_at" =>
-            Timex.parse!(row_map["created_at"], "%d/%m/%Y %H:%M:%S", :strftime) |>
-            Timex.to_unix |>
-            DateTime.from_unix!() ,
-          "updated_at" =>
-            Timex.parse!(row_map["updated_at"], "%d/%m/%Y %H:%M:%S", :strftime) |>
-            Timex.to_unix |>
-            DateTime.from_unix!()
-        }
-        case GoustoApiTask.Recipe.merge(%GoustoApiTask.Recipe{}, row_map) do
-          {:ok, recipe} -> insert! recipe
-          _ -> nil
-        end
-      end) |>
-      Enum.filter(fn(i) -> i != nil end) |>
-      length
-
-    Logger.info "CSV loaded: #{loaded}/#{rows} recipes loaded from CSV"
-  end
-
-  # create empty structure for repo
-  defp new_repo do
-    %{
-      last_id: 0,
-      records: []
-    }
-  end
 end

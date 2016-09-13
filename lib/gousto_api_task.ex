@@ -13,8 +13,8 @@ defmodule GoustoApiTask do
       # Start the endpoint when the application starts
       supervisor(GoustoApiTask.Endpoint, []),
       # Start your own worker by calling: GoustoApiTask.Worker.start_link(arg1, arg2, arg3)
-      worker(GoustoApiTask.Repo, [nil, [name: RecipesRepo]], id: :recipes_repo),
-      worker(GoustoApiTask.Repo, [nil, [name: RecipeRatingsRepo]], id: :recipes_ratings_repo),
+      worker(GoustoApiTask.InMemoryStore, [nil, [name: RecipesRepo]], id: :recipes_repo),
+      worker(GoustoApiTask.InMemoryStore, [nil, [name: RecipeRatingsRepo]], id: :recipes_ratings_repo),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

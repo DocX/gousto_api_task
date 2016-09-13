@@ -37,7 +37,7 @@ defmodule GoustoApiTask.RecipeController do
     # try to merge user params to new record model
     # if merged, insert to repo and get result
     result = case Recipe.merge(%Recipe{}, attrs) do
-      {:ok, recipe} -> Repo.insert!(recipe)
+      {:ok, recipe} -> Repo.insert(recipe)
       {:error, errors} -> {:bad_request, errors}
     end
 
@@ -59,19 +59,17 @@ defmodule GoustoApiTask.RecipeController do
   end
 
   def show(conn, %{"id" => id}) do
-    recipe = Repo.get!(Recipe, id)
-    if is_nil(recipe) do
-      conn
-      |> send_resp(404, "")
-    else
-      render(conn, data: recipe)
+    # get recipe based on id or slug based on type of parameter
+    case get_by_id_or_slug!(id) do
+      nil -> conn |> send_resp(404, "")
+      recipe -> render(conn, data: recipe)
     end
   end
 
   def update(conn, %{"id" => id, "data" => %{ "attributes" => attrs, "type" => "recipes"}}) do
-    recipe = Repo.get!(Recipe, id)
+    recipe = get_by_id_or_slug!(id)
     result = case Recipe.merge(recipe, attrs) do
-      {:ok, recipe} -> Repo.update!(recipe)
+      {:ok, recipe} -> Repo.update(recipe)
       {:error, errors} -> {:bad_request, errors}
     end
 
@@ -86,6 +84,14 @@ defmodule GoustoApiTask.RecipeController do
         conn
         |> put_status(:unprocessable_entity)
         |> render(GoustoApiTask.ErrorView, "errors.json-api", errors: changeset)
+    end
+  end
+
+  defp get_by_id_or_slug!(id) do
+    case Integer.parse(id) do
+      {id, ""} -> Repo.get!(Recipe, id)
+      {number, rest} -> Repo.get_by!(Recipe, "slug", id)
+      _ -> Repo.get_by!(Recipe, "slug", id)
     end
   end
 

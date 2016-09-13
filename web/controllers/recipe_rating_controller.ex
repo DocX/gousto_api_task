@@ -45,7 +45,7 @@ defmodule GoustoApiTask.RecipeRatingController do
     # if merged successfuly, insert to repo and get result
     # otherwise use error from merge as error for render
     result = case RecipeRating.merge(%RecipeRating{}, attrs) do
-      {:ok, rating} -> Repo.insert!(rating)
+      {:ok, rating} -> Repo.insert(rating)
       {:error, errors} -> {:bad_request, errors}
     end
 
