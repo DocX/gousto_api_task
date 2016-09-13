@@ -7,7 +7,7 @@ defmodule GoustoApiTask.RecipeRatingController do
   alias GoustoApiTask.Pagination
   import GoustoApiTask.Router.Helpers
   alias GoustoApiTask.Endpoint
-  
+
   plug :load_recipe
 
   defp load_recipe(conn, _) do
@@ -42,7 +42,8 @@ defmodule GoustoApiTask.RecipeRatingController do
     attrs = %{attrs | "recipe_id" => recipe_id}
 
     # try to merge user params to new record model
-    # if merged, insert to repo and get result
+    # if merged successfuly, insert to repo and get result
+    # otherwise use error from merge as error for render
     result = case RecipeRating.merge(%RecipeRating{}, attrs) do
       {:ok, rating} -> Repo.insert!(rating)
       {:error, errors} -> {:bad_request, errors}

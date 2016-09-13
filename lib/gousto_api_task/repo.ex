@@ -34,8 +34,8 @@ defmodule GoustoApiTask.Repo do
     {:reply, matching_records, repo}
   end
 
-  def handle_call({:clear}, _from, repo) do
-    {:reply, :ok, new_repo}
+  def handle_cast({:clear}, repo) do
+    {:noreply, new_repo}
   end
 
   # insert new record to repo
@@ -56,6 +56,11 @@ defmodule GoustoApiTask.Repo do
       {:ok, new_record} -> {:reply, {:ok, new_record}, store_update(repo, new_record)}
       error -> {:reply, error, repo}
     end
+  end
+
+  # count
+  def handle_call({:count}, _from, repo) do
+    {:reply, length(repo.records), repo}
   end
 
 
@@ -112,7 +117,11 @@ defmodule GoustoApiTask.Repo do
   end
 
   def clear(type) do
-    GenServer.call(get_type_repo(type), {:clear})
+    GenServer.cast(get_type_repo(type), {:clear})
+  end
+
+  def count(type) do
+    GenServer.call(get_type_repo(type), {:count})
   end
 
   # Get repo name for record type
@@ -123,6 +132,26 @@ defmodule GoustoApiTask.Repo do
     end
   end
 
+  def load_from_csv(GoustoApiTask.Recipe, file) do
+    csv_stream =
+      File.stream!(file) |>
+      CSV.decode()
+
+    header = csv_stream |> Enum.take(1) |> Enum.at(0)
+
+    csv_stream |>
+    Enum.drop(1) |>
+    Enum.map(fn row ->
+      # transform row with header to map, and apply to new record struct
+      row_map = Enum.zip(header,row) |> Map.new()
+      case GoustoApiTask.Recipe.merge(%GoustoApiTask.Recipe{}, row_map) do
+        {:ok, recipe} -> insert! recipe
+        _ -> nil
+      end
+    end)
+  end
+
+  # create empty structure for repo
   defp new_repo do
     %{
       last_id: 0,

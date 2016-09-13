@@ -3,6 +3,7 @@ defmodule GoustoApiTask.Router do
 
   pipeline :api do
     plug :accepts, ["json-api"]
+    plug GoustoApiTask.Plugs.LoadDataFromCSV
   end
 
   scope "/api", GoustoApiTask do

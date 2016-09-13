@@ -38,8 +38,8 @@ defmodule GoustoApiTask.Recipe do
     # set initial values
     %{
       new |
-      created_at: DateTime.utc_now |> DateTime.to_iso8601,
-      updated_at: DateTime.utc_now |> DateTime.to_iso8601,
+      created_at: new.created_at || (DateTime.utc_now |> DateTime.to_iso8601),
+      updated_at: new.updated_at || (DateTime.utc_now |> DateTime.to_iso8601),
       slug: case new.slug do nil -> slug(new); x -> x end
     }
   end
