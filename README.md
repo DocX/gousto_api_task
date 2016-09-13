@@ -100,7 +100,7 @@ Tests I implemented cover all the specified API endpoints and actions - for both
 
 All API endpoint uses JSONAPI specification. All requests MUST use content type and accepts header `application/vnd.api+json`.
 
-### Recipes
+### Recipes - Fetch all
 
 `GET /api/recipes`
 
@@ -143,6 +143,8 @@ Example Response:
 }
 ```
 
+### Recipes - Fetch by ID
+
 `GET /api/recipes/:id`
 
 Fetches recipe with given ID of slug
@@ -176,6 +178,8 @@ Example Response - Not found:
 ```
 404 Not found
 ```
+
+### Recipes - Create
 
 `POST /api/recipes`
 
@@ -239,6 +243,8 @@ Example Response - 422:
 }
 ```
 
+### Recipes - Update
+
 `PUT /api/recipes/:id`
 
 Updates recipe with given ID or slug.
@@ -292,11 +298,14 @@ Example Response - 200:
 }
 ```
 
-### Recipe rating
+### Recipe ratings - Fetch all ratings of recipe
 
 `GET /api/recipe/:id/ratings`
 
 Fetch all ratings of given recipe (only numerical ID)
+
+
+### Recipe ratings - Rate recipe 
 
 `POST /api/recipe/:id/ratings`
 
