@@ -118,7 +118,7 @@ Responses:
 
 Example Response:
 
-```
+```json
 200 OK
 
 {
@@ -152,7 +152,7 @@ Fetches recipe with given ID of slug
 
 Example Response - Recipe exists:
 
-```
+```json
 200 OK
 
 {
@@ -192,7 +192,7 @@ Response:
   * 422 Unprocessable Entity - record data validations are violated - empty name, slug already used etc.
 
 Example Request:
-```
+```json
 POST /api/recipes
 
 {
@@ -210,7 +210,7 @@ POST /api/recipes
 
 Example Response - 201:
 
-```
+```json
 200 OK
 
 {
@@ -230,7 +230,7 @@ Example Response - 201:
 ```
 
 Example Response - 422:
-```
+```json
 {
   "errors": [{
     "title": "Cannot be blank",
@@ -255,7 +255,7 @@ Responses:
   * 422 Unprocessable entity - new values violates record validations. no changes has been saved
 
 Example Request:
-```
+```json
 PUT /api/recipes/1
 
 {
@@ -273,7 +273,7 @@ PUT /api/recipes/1
 
 Example Response - 200:
 
-```
+```json
 200 OK
 
 {
@@ -313,7 +313,7 @@ Repsonse:
   * 422 Unprocessable entity - invalid attributes, check the response for erros
 
 Example Request:
-```
+```json
 POST /api/recipes/1/ratings
 
 {
@@ -328,7 +328,7 @@ POST /api/recipes/1/ratings
 
 Example Response - 201:
 
-```
+```json
 201 Created
 
 {
@@ -345,7 +345,7 @@ Example Response - 201:
 ```
 
 Example Response - 422:
-```
+```json
 {
   "errors": [{
     "title": "Rating have to be integer number between 1 and 5 inclusive",
