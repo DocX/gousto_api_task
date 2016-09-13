@@ -34,6 +34,7 @@ defmodule GoustoApiTask.Mixfile do
      {:phoenix_pubsub, "~> 1.0"},
      {:gettext, "~> 0.11"},
      {:csv, "~> 1.4.2"},
+     {:timex, "~> 3.0"},
      {:cowboy, "~> 1.0"}]
   end
 
