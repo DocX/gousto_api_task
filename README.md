@@ -261,7 +261,7 @@ PUT /api/recipes/1
 {
   "data":{
     "type":"recipes",
-    "id": 1
+    "id": 1,
     "attributes":{
         "title":"Sweet Chilli and Lime Beef on a Crunchy Fresh Noodle Salad",
         "short_title":"Noodle Chilli con Carne",
