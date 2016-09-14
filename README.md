@@ -94,6 +94,14 @@ As not required by Task, authentication is not implemented in any way in the app
 
 [JSON Web Tokens](https://jwt.io/) is modern approach for authenticating HTTP APIs that are split accross multiple applications, using signed data tokens including state or other information about user. It may include ACL lists, user IDs etc that are signed by authentication service and then can be used by other services without need of contacting database for each request.
 
+### Delete operation
+
+Task specification doesn't explicitly require ability to delete Recipes. Hence I removed this operation in the implementation.
+
+However in real world situation removing Recipes from the public list is most likely wanted action. i would add indexed field `deleted_at` in the database that would be set to timestamp when delete operation is done on given record. Default behaviour of index and show endpoints would then be like the records with non-null value doesn't exists. Delete action would need authorization similarly to update and create actions.
+
+Regarding recipe ratings records, I would keep them un-deletable intentionally.
+
 ### Tests
 
 Built-in part of Phoenix framework is testing suit allowing to write tests for various parts of the application including integration tests of API requests.
@@ -309,7 +317,7 @@ Example Response - 200:
 Fetch all ratings of given recipe (only numerical ID)
 
 
-### Recipe ratings - Rate recipe 
+### Recipe ratings - Rate recipe
 
 `POST /api/recipe/:id/ratings`
 
