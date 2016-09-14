@@ -104,7 +104,7 @@ Tests I implemented cover all the specified API endpoints and actions - for both
 
 All API endpoint uses JSONAPI specification. All requests MUST use content type and accepts header `application/vnd.api+json`.
 
-### Recipes
+### Recipes - Fetch all
 
 `GET /api/recipes`
 
@@ -122,7 +122,7 @@ Responses:
 
 Example Response:
 
-```
+```json
 200 OK
 
 {
@@ -147,6 +147,8 @@ Example Response:
 }
 ```
 
+### Recipes - Fetch by ID
+
 `GET /api/recipes/:id`
 
 Fetches recipe with given ID of slug
@@ -156,7 +158,7 @@ Fetches recipe with given ID of slug
 
 Example Response - Recipe exists:
 
-```
+```json
 200 OK
 
 {
@@ -181,6 +183,8 @@ Example Response - Not found:
 404 Not found
 ```
 
+### Recipes - Create
+
 `POST /api/recipes`
 
 Create recipe from JSONAPI attributes
@@ -196,7 +200,7 @@ Response:
   * 422 Unprocessable Entity - record data validations are violated - empty name, slug already used etc.
 
 Example Request:
-```
+```json
 POST /api/recipes
 
 {
@@ -214,7 +218,7 @@ POST /api/recipes
 
 Example Response - 201:
 
-```
+```json
 200 OK
 
 {
@@ -234,7 +238,7 @@ Example Response - 201:
 ```
 
 Example Response - 422:
-```
+```json
 {
   "errors": [{
     "title": "Cannot be blank",
@@ -242,6 +246,8 @@ Example Response - 422:
   }]
 }
 ```
+
+### Recipes - Update
 
 `PUT /api/recipes/:id`
 
@@ -259,13 +265,13 @@ Responses:
   * 422 Unprocessable entity - new values violates record validations. no changes has been saved
 
 Example Request:
-```
+```json
 PUT /api/recipes/1
 
 {
   "data":{
     "type":"recipes",
-    "id": 1
+    "id": 1,
     "attributes":{
         "title":"Sweet Chilli and Lime Beef on a Crunchy Fresh Noodle Salad",
         "short_title":"Noodle Chilli con Carne",
@@ -277,7 +283,7 @@ PUT /api/recipes/1
 
 Example Response - 200:
 
-```
+```json
 200 OK
 
 {
@@ -296,11 +302,14 @@ Example Response - 200:
 }
 ```
 
-### Recipe rating
+### Recipe ratings - Fetch all ratings of recipe
 
 `GET /api/recipe/:id/ratings`
 
 Fetch all ratings of given recipe (only numerical ID)
+
+
+### Recipe ratings - Rate recipe 
 
 `POST /api/recipe/:id/ratings`
 
@@ -317,7 +326,7 @@ Repsonse:
   * 422 Unprocessable entity - invalid attributes, check the response for erros
 
 Example Request:
-```
+```json
 POST /api/recipes/1/ratings
 
 {
@@ -332,7 +341,7 @@ POST /api/recipes/1/ratings
 
 Example Response - 201:
 
-```
+```json
 201 Created
 
 {
@@ -349,7 +358,7 @@ Example Response - 201:
 ```
 
 Example Response - 422:
-```
+```json
 {
   "errors": [{
     "title": "Rating have to be integer number between 1 and 5 inclusive",
