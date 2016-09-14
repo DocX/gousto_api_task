@@ -6,6 +6,10 @@ To start application:
   * Install dependencies with `mix deps.get`
   * Start Phoenix endpoint with `CSV_DATA_FILE=data/recipe-data.csv mix phoenix.server` - loads CSV data on first request
 
+Or using Docker Compose:
+
+  * `docker-compose up web`
+
 Now you can visit [`localhost:4000/api/recipes`](http://localhost:4000/api/recipes) from your browser.
 
 ## About
@@ -360,6 +364,10 @@ Run tests with
 
   * Install dependencies `mix deps.get`
   * Run tests `mix test`
+
+Or using Docker Compose
+
+  * `docker-compose run test`
 
 ## Author
 

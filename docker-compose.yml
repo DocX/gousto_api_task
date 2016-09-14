@@ -1,0 +1,26 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "elixirdb"
+  web: &web
+    build: .
+    command: /myapp/run-web.sh
+    environment:
+      DB_HOST: "db:5432"
+      DB_PASSWORD: "elixirdb"
+      CSV_DATA_FILE: "data/recipe-data.csv"
+    volumes:
+      - .:/myapp
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    links:
+      - db
+  test:
+    <<: *web
+    command: /myapp/run-test.sh
+    environment:
+      DB_HOST: "db:5432"    
